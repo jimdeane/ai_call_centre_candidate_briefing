@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  questionnaire:
+    build: ./app
+    container_name: questionnaire_app
+    volumes:
+      - questionnaire_data:/app/data
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+
+volumes:
+  questionnaire_data:
