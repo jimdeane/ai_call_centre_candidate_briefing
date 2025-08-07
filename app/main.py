@@ -16,7 +16,6 @@ os.makedirs(DATA_DIR, exist_ok=True)
 DB_PATH = os.path.join(DATA_DIR, "submissions.db")
 DB_URI = f"sqlite:///{DB_PATH}"
 
-
 app.config['SQLALCHEMY_DATABASE_URI'] = DB_URI
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -32,6 +31,7 @@ else:
     with open(CODE_FILE, "r") as f:
         codes = [line.strip() for line in f.readlines()]
 
+
 class Submission(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     session_id = db.Column(db.String(64), nullable=False)
@@ -40,12 +40,74 @@ class Submission(db.Model):
     answers = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
+
 with app.app_context():
     db.create_all()
 
-@app.route("/")
+
+@app.route("/", methods=["GET", "POST"])
 def index():
-    return "<p>Welcome. Please access your questionnaire using the link provided to you.</p>"
+    if request.method == "POST":
+        qid = request.form.get("qid")
+        code = request.form.get("code")
+        session = request.form.get("session")
+
+        if not code or not session:
+            return "Session ID and Code are required.", 400
+
+        if code == "supersecretadmincode":
+            return redirect(url_for('admin', code=code))
+        else:
+            return redirect(url_for('questionnaire', qid=qid, session=session, code=code))
+
+    return '''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Welcome to the Questionnaire Portal</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            body {
+                background-color: #f8f9fa;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+            }
+            .jumbotron {
+                background: white;
+                padding: 2rem 3rem;
+                border-radius: 10px;
+                box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+                max-width: 600px;
+                width: 100%;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="jumbotron">
+            <h1 class="display-5">Questionnaire Portal</h1>
+            <p class="lead">Please enter your questionnaire number, session ID, and access code to begin.</p>
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label">Questionnaire ID</label>
+                    <input type="text" class="form-control" name="qid" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Session ID</label>
+                    <input type="text" class="form-control" name="session" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Access Code</label>
+                    <input type="text" class="form-control" name="code" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Enter</button>
+            </form>
+        </div>
+    </body>
+    </html>
+    '''
 
 
 @app.route("/admin", methods=["GET"])
@@ -69,7 +131,7 @@ def admin():
         <li>{{ c }}</li>
     {% endfor %}
     </ul>
-
+<iframe src="https://replit.com/@jimd4/FlaskStart?embed=true" width="600" height="400"></iframe>
     <h2>Submissions</h2>
     {% for sub in submissions %}
         <div style="margin-bottom: 20px; padding: 10px; border: 1px solid #ccc;">
@@ -97,6 +159,7 @@ def admin():
         } for s in submissions
     ])
     return rendered
+
 
 @app.route("/questionnaire/<qid>", methods=["GET", "POST"])
 def questionnaire(qid):
@@ -196,5 +259,6 @@ def questionnaire(qid):
 
     return render_template_string(form_html, questions=questions, qid=qid)
 
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=5020)
