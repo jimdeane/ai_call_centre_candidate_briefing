@@ -276,5 +276,6 @@
       "answer": 1
     }
   ],
-  "validation": false
+  "validation": false,
+  "mandatory": false
 }

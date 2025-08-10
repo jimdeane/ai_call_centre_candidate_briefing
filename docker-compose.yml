@@ -7,7 +7,7 @@ services:
     volumes:
       - questionnaire_data:/app/data
     ports:
-      - "5000:5000"
+      - "5000:5020"
     restart: unless-stopped
 
 volumes:
