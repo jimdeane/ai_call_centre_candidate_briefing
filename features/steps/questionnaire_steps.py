@@ -1,8 +1,13 @@
 import os
+import sys
 import json
 import time
 from behave import given, when, then
 from flask import Flask
+
+# Ensure the project root is in sys.path for imports
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
+
 from app.main import app, db, Submission, DATA_DIR
 from flask.testing import FlaskClient
 
